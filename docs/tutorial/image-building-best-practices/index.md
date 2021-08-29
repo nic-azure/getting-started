@@ -1,3 +1,46 @@
+## Security Scanning
+
+When you have built an image, it is good practice to scan it for security vulnerabilities using the `docker scan` command.
+Docker has partnered with [Snyk](http://snyk.io) to provide the vulnerability scanning service.
+
+For example, to scan the `getting-started` image you created earlier in the tutorial, you can just type
+
+```bash
+docker scan getting-started
+```
+
+The scan uses a constantly updated database of vulnerabilities, so the output you see will vary as new
+vulnerabilities are discovered, but it might look something like this:
+
+```plaintext
+✗ Low severity vulnerability found in freetype/freetype
+  Description: CVE-2020-15999
+  Info: https://snyk.io/vuln/SNYK-ALPINE310-FREETYPE-1019641
+  Introduced through: freetype/freetype@2.10.0-r0, gd/libgd@2.2.5-r2
+  From: freetype/freetype@2.10.0-r0
+  From: gd/libgd@2.2.5-r2 > freetype/freetype@2.10.0-r0
+  Fixed in: 2.10.0-r1
+
+✗ Medium severity vulnerability found in libxml2/libxml2
+  Description: Out-of-bounds Read
+  Info: https://snyk.io/vuln/SNYK-ALPINE310-LIBXML2-674791
+  Introduced through: libxml2/libxml2@2.9.9-r3, libxslt/libxslt@1.1.33-r3, nginx-module-xslt/nginx-module-xslt@1.17.9-r1
+  From: libxml2/libxml2@2.9.9-r3
+  From: libxslt/libxslt@1.1.33-r3 > libxml2/libxml2@2.9.9-r3
+  From: nginx-module-xslt/nginx-module-xslt@1.17.9-r1 > libxml2/libxml2@2.9.9-r3
+  Fixed in: 2.9.9-r4
+```
+
+The output lists the type of vulnerability, a URL to learn more, and importantly which version of the relevant library
+fixes the vulnerability.
+
+There are several other options, which you can read about in the [docker scan documentation](https://docs.docker.com/engine/scan/).
+
+As well as scanning your newly built image on the command line, you can also [configure Docker Hub](https://docs.docker.com/docker-hub/vulnerability-scanning/)
+to scan all newly pushed images automatically, and you can then see the results in both Docker Hub and Docker Desktop.
+
+![Hub vulnerability scanning](hvs.png){: style=width:75% }
+{: .text-center }
 
 ## Image Layering
 
@@ -15,7 +58,7 @@ command, you can see the command that was used to create each layer within an im
 
     ```plaintext
     IMAGE               CREATED             CREATED BY                                      SIZE                COMMENT
-    a78a40cbf866        18 seconds ago      /bin/sh -c #(nop)  CMD ["node" "/app/src/ind…   0B                  
+    a78a40cbf866        18 seconds ago      /bin/sh -c #(nop)  CMD ["node" "src/index.j…    0B                  
     f1d1808565d6        19 seconds ago      /bin/sh -c yarn install --production            85.4MB              
     a2c054d14948        36 seconds ago      /bin/sh -c #(nop) COPY dir:5dc710ad87c789593…   198kB               
     9577ae713121        37 seconds ago      /bin/sh -c #(nop) WORKDIR /app                  0B                  
@@ -44,7 +87,7 @@ command, you can see the command that was used to create each layer within an im
 
 ## Layer Caching
 
-Now that you've seen the layering in action, there's an important lesson to learn to help increase build
+Now that you've seen the layering in action, there's an important lesson to learn to help decrease build
 times for your container images.
 
 > Once a layer changes, all downstream layers have to be recreated as well
@@ -56,7 +99,7 @@ FROM node:12-alpine
 WORKDIR /app
 COPY . .
 RUN yarn install --production
-CMD ["node", "/app/src/index.js"]
+CMD ["node", "src/index.js"]
 ```
 
 Going back to the image history output, we see that each command in the Dockerfile becomes a new layer in the image.
@@ -76,8 +119,23 @@ a change to the `package.json`. Make sense?
     COPY package.json yarn.lock ./
     RUN yarn install --production
     COPY . .
-    CMD ["node", "/app/src/index.js"]
+    CMD ["node", "src/index.js"]
     ```
+
+1. Create a file named `.dockerignore` in the same folder as the Dockerfile with the following contents.
+
+    ```ignore
+    node_modules
+    ```
+
+    `.dockerignore` files are an easy way to selectively copy only image relevant files.
+    You can read more about this
+    [here](https://docs.docker.com/engine/reference/builder/#dockerignore-file).
+    In this case, the `node_modules` folder should be omitted in the second `COPY` step because otherwise,
+    it would possibly overwrite files which were created by the command in the `RUN` step.
+    For further details on why this is recommended for Node.js applications and other best practices,
+    have a look at their guide on
+    [Dockerizing a Node.js web app](https://nodejs.org/en/docs/guides/nodejs-docker-webapp/).
 
 1. Build a new image using `docker build`.
 
@@ -94,7 +152,7 @@ a change to the `package.json`. Make sense?
     Step 2/6 : WORKDIR /app
     ---> Using cache
     ---> 9577ae713121
-    Step 3/6 : COPY package* yarn.lock ./
+    Step 3/6 : COPY package.json yarn.lock ./
     ---> bd5306f49fc8
     Step 4/6 : RUN yarn install --production
     ---> Running in d53a06c9e4c2
@@ -110,7 +168,7 @@ a change to the `package.json`. Make sense?
     ---> 4e68fbc2d704
     Step 5/6 : COPY . .
     ---> a239a11f68d8
-    Step 6/6 : CMD ["node", "/app/src/index.js"]
+    Step 6/6 : CMD ["node", "src/index.js"]
     ---> Running in 49999f68df8f
     Removing intermediate container 49999f68df8f
     ---> e709c03bc597
@@ -122,7 +180,7 @@ a change to the `package.json`. Make sense?
 
 1. Now, make a change to the `src/static/index.html` file (like change the `<title>` to say "The Awesome Todo App").
 
-1. Build the Docker image now using `docker build` again. This time, your output should look a little different.
+1. Build the Docker image now using `docker build -t getting-started .` again. This time, your output should look a little different.
 
     ```plaintext hl_lines="5 8 11"
     Sending build context to Docker daemon  219.1kB
@@ -131,7 +189,7 @@ a change to the `package.json`. Make sense?
     Step 2/6 : WORKDIR /app
     ---> Using cache
     ---> 9577ae713121
-    Step 3/6 : COPY package* yarn.lock ./
+    Step 3/6 : COPY package.json yarn.lock ./
     ---> Using cache
     ---> bd5306f49fc8
     Step 4/6 : RUN yarn install --production
@@ -139,7 +197,7 @@ a change to the `package.json`. Make sense?
     ---> 4e68fbc2d704
     Step 5/6 : COPY . .
     ---> cccde25a3d9a
-    Step 6/6 : CMD ["node", "/app/src/index.js"]
+    Step 6/6 : CMD ["node", "src/index.js"]
     ---> Running in 2be75662c150
     Removing intermediate container 2be75662c150
     ---> 458e5c6f080c
@@ -207,6 +265,6 @@ into an nginx container. Cool, huh?
 ## Recap
 
 By understanding a little bit about how images are structured, we can build images faster and ship fewer changes.
+Scanning images gives us confidence that the containers we are running and distributing are secure.
 Multi-stage builds also help us reduce overall image size and increase final container security by separating
 build-time dependencies from runtime dependencies.
-

@@ -12,7 +12,7 @@ So, how do we get started?
 
 ## Installing Docker Compose
 
-Since you installed Docker Desktop/Toolbox for either Windows or Mac, you already have Docker Compose!
+If you installed Docker Desktop/Toolbox for either Windows or Mac, you already have Docker Compose!
 Play-with-Docker instances already have Docker Compose installed as well. If you are on 
 a Linux machine, you will need to install Docker Compose using 
 [the instructions here](https://docs.docker.com/compose/install/). 
@@ -53,13 +53,27 @@ To remember, this was the command we were using to define our app container.
 
 ```bash
 docker run -dp 3000:3000 \
-  -w /app -v $PWD:/app \
+  -w /app -v "$(pwd):/app" \
   --network todo-app \
   -e MYSQL_HOST=mysql \
   -e MYSQL_USER=root \
   -e MYSQL_PASSWORD=secret \
   -e MYSQL_DB=todos \
   node:12-alpine \
+  sh -c "yarn install && yarn run dev"
+```
+
+If you are using PowerShell then use this command.
+
+```powershell
+docker run -dp 3000:3000 `
+  -w /app -v "$(pwd):/app" `
+  --network todo-app `
+  -e MYSQL_HOST=mysql `
+  -e MYSQL_USER=root `
+  -e MYSQL_PASSWORD=secret `
+  -e MYSQL_DB=todos `
+  node:12-alpine `
   sh -c "yarn install && yarn run dev"
 ```
 
@@ -102,7 +116,7 @@ docker run -dp 3000:3000 \
           - 3000:3000
     ```
 
-1. Next, we'll migrate both the working directory (`-w /app`) and the volume mapping (`-v $PWD:/app`) by using
+1. Next, we'll migrate both the working directory (`-w /app`) and the volume mapping (`-v "$(pwd):/app"`) by using
    the `working_dir` and `volumes` definitions. Volumes also has a [short](https://docs.docker.com/compose/compose-file/#short-syntax-3) and [long](https://docs.docker.com/compose/compose-file/#long-syntax-3) syntax.
 
     One advantage of Docker Compose volume definitions is we can use relative paths from the current directory.
@@ -153,6 +167,17 @@ docker run -d \
   -v todo-mysql-data:/var/lib/mysql \
   -e MYSQL_ROOT_PASSWORD=secret \
   -e MYSQL_DATABASE=todos \
+  mysql:5.7
+```
+
+If you are using PowerShell then use this command.
+
+```powershell
+docker run -d `
+  --network todo-app --network-alias mysql `
+  -v todo-mysql-data:/var/lib/mysql `
+  -e MYSQL_ROOT_PASSWORD=secret `
+  -e MYSQL_DATABASE=todos `
   mysql:5.7
 ```
 
@@ -317,7 +342,7 @@ for the entire app. The containers will stop and the network will be removed.
     By default, named volumes in your compose file are NOT removed when running `docker-compose down`. If you want to
     remove the volumes, you will need to add the `--volumes` flag.
 
-    The Docker Dashboard does _not_ remove volumes when delete the app stack.
+    The Docker Dashboard does _not_ remove volumes when you delete the app stack.
 
 Once torn down, you can switch to another project, run `docker-compose up` and be ready to contribute to that project! It really
 doesn't get much simpler than that!
@@ -325,7 +350,7 @@ doesn't get much simpler than that!
 
 ## Recap
 
-In this section, we learned about Docker Compose and how it helps dramatically simply the defining and
+In this section, we learned about Docker Compose and how it helps us dramatically simplify the defining and
 sharing of multi-service applications. We created a Compose file by translating the commands we were
 using into the appropriate compose format.
 

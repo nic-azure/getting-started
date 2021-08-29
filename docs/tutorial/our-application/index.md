@@ -1,6 +1,6 @@
 
 For the rest of this tutorial, we will be working with a simple todo
-list manager that is running in Node. If you're not familiar with Node,
+list manager that is running in Node.js. If you're not familiar with Node.js,
 don't worry! No real JavaScript experience is needed!
 
 At this point, your development team is quite small and you're simply
@@ -10,7 +10,6 @@ think about how it will work for a large team, multiple developers, etc.
 
 ![Todo List Manager Screenshot](todo-list-sample.png){: style="width:50%;" }
 { .text-center }
-
 
 ## Getting our App
 
@@ -35,17 +34,20 @@ Dockerfile is simply a text-based script of instructions that is used to
 create a container image. If you've created Dockerfiles before, you might
 see a few flaws in the Dockerfile below. But, don't worry! We'll go over them.
 
-1. Create a file named Dockerfile with the following contents.
+1. Create a file named `Dockerfile` in the same folder as the file `package.json` with the following contents.
 
     ```dockerfile
     FROM node:12-alpine
+    RUN apk add --no-cache python g++ make
     WORKDIR /app
     COPY . .
     RUN yarn install --production
-    CMD ["node", "/app/src/index.js"]
+    CMD ["node", "src/index.js"]
     ```
 
-1. Build the container image using the `docker build` command.
+    Please check that the file `Dockerfile` has no file extension like `.txt`. Some editors may append this file extension automatically and this would result in an error in the next step.
+
+1. If you haven't already done so, open a terminal and go to the `app` directory with the `Dockerfile`. Now build the container image using the `docker build` command.
 
     ```bash
     docker build -t getting-started .
@@ -64,6 +66,7 @@ see a few flaws in the Dockerfile below. But, don't worry! We'll go over them.
     for the final image. Since we named the image `getting-started`, we can refer to that
     image when we run a container.
 
+    The `.` at the end of the `docker build` command tells that Docker should look for the `Dockerfile` in the current directory.
 
 ## Starting an App Container
 

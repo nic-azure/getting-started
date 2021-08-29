@@ -7,6 +7,7 @@ RUN pip install -r requirements.txt
 
 # Run tests to validate app
 FROM node:12-alpine AS app-base
+RUN apk add --no-cache python g++ make
 WORKDIR /app
 COPY app/package.json app/yarn.lock ./
 RUN yarn install
@@ -27,7 +28,6 @@ CMD ["mkdocs", "serve", "-a", "0.0.0.0:8000"]
 # Do the actual build of the mkdocs site
 FROM base AS build
 COPY . .
-ARG LANGUAGE
 RUN mkdocs build
 
 # Extract the static content from the build
