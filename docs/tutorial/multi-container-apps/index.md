@@ -38,7 +38,7 @@ For now, we will create the network first and attach the MySQL container at star
     ```
 
 1. Start a MySQL container and attach it the network. We're also going to define a few environment variables that the
-  database will use to initialize the database (see the "Environment Variables" section in the [MySQL Docker Hub listing](https://hub.docker.com/_/mysql/)).
+  database will use to initialize the database (see the "Environment Variables" section in the [MySQL Docker Hub listing](https://hub.docker.com/_/mysql/)) (replace the ` \ ` characters with `` ` `` in Windows PowerShell).
 
     ```bash
     docker run -d \
@@ -165,11 +165,11 @@ The todo app supports the setting of a few environment variables to specify MySQ
 
 With all of that explained, let's start our dev-ready container!
 
-1. We'll specify each of the environment variables above, as well as connect the container to our app network.
+1. We'll specify each of the environment variables above, as well as connect the container to our app network (replace the ` \ ` characters with `` ` `` in Windows PowerShell).
 
     ```bash hl_lines="3 4 5 6 7"
     docker run -dp 3000:3000 \
-      -w /app -v $PWD:/app \
+      -w /app -v ${PWD}:/app \
       --network todo-app \
       -e MYSQL_HOST=mysql \
       -e MYSQL_USER=root \
@@ -216,10 +216,10 @@ With all of that explained, let's start our dev-ready container!
 
     Obviously, your table will look different because it has your items. But, you should see them stored there!
 
-If you take a quick look at the Docker Dashboard, you'll see that we have two app containers running. But, there's
+If you take a quick look at the Docker extension, you'll see that we have two app containers running. But, there's
 no real indication that they are grouped together in a single app. We'll see how to make that better shortly!
 
-![Docker Dashboard showing two ungrouped app containers](dashboard-multi-container-app.png)
+![Docker Dashboard showing two ungrouped app containers](vs-multi-container-app.png)
 
 ## Recap
 

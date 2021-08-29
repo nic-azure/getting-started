@@ -15,7 +15,7 @@ command, you can see the command that was used to create each layer within an im
 
     ```plaintext
     IMAGE               CREATED             CREATED BY                                      SIZE                COMMENT
-    a78a40cbf866        18 seconds ago      /bin/sh -c #(nop)  CMD ["node" "/app/src/ind…   0B                  
+    a78a40cbf866        18 seconds ago      /bin/sh -c #(nop)  CMD ["node" "src/index.j…    0B                  
     f1d1808565d6        19 seconds ago      /bin/sh -c yarn install --production            85.4MB              
     a2c054d14948        36 seconds ago      /bin/sh -c #(nop) COPY dir:5dc710ad87c789593…   198kB               
     9577ae713121        37 seconds ago      /bin/sh -c #(nop) WORKDIR /app                  0B                  
@@ -44,7 +44,7 @@ command, you can see the command that was used to create each layer within an im
 
 ## Layer Caching
 
-Now that you've seen the layering in action, there's an important lesson to learn to help increase build
+Now that you've seen the layering in action, there's an important lesson to learn to help decrease build
 times for your container images.
 
 > Once a layer changes, all downstream layers have to be recreated as well
@@ -56,7 +56,7 @@ FROM node:12-alpine
 WORKDIR /app
 COPY . .
 RUN yarn install --production
-CMD ["node", "/app/src/index.js"]
+CMD ["node", "src/index.js"]
 ```
 
 Going back to the image history output, we see that each command in the Dockerfile becomes a new layer in the image.
@@ -76,8 +76,23 @@ a change to the `package.json`. Make sense?
     COPY package.json yarn.lock ./
     RUN yarn install --production
     COPY . .
-    CMD ["node", "/app/src/index.js"]
+    CMD ["node", "src/index.js"]
     ```
+
+1. Create a file named `.dockerignore` in the same folder as the Dockerfile with the following contents.
+
+    ```ignore
+    node_modules
+    ```
+
+    `.dockerignore` files are an easy way to selectively copy only image relevant files.
+    You can read more about this
+    [here](https://docs.docker.com/engine/reference/builder/#dockerignore-file).
+    In this case, the `node_modules` folder should be omitted in the second `COPY` step because otherwise,
+    it would possibly overwrite files which were created by the command in the `RUN` step.
+    For further details on why this is recommended for Node.js applications and other best practices,
+    have a look at their guide on
+    [Dockerizing a Node.js web app](https://nodejs.org/en/docs/guides/nodejs-docker-webapp/).
 
 1. Build a new image using `docker build`.
 
@@ -94,7 +109,7 @@ a change to the `package.json`. Make sense?
     Step 2/6 : WORKDIR /app
     ---> Using cache
     ---> 9577ae713121
-    Step 3/6 : COPY package* yarn.lock ./
+    Step 3/6 : COPY package.json yarn.lock ./
     ---> bd5306f49fc8
     Step 4/6 : RUN yarn install --production
     ---> Running in d53a06c9e4c2
@@ -110,7 +125,7 @@ a change to the `package.json`. Make sense?
     ---> 4e68fbc2d704
     Step 5/6 : COPY . .
     ---> a239a11f68d8
-    Step 6/6 : CMD ["node", "/app/src/index.js"]
+    Step 6/6 : CMD ["node", "src/index.js"]
     ---> Running in 49999f68df8f
     Removing intermediate container 49999f68df8f
     ---> e709c03bc597
@@ -122,7 +137,7 @@ a change to the `package.json`. Make sense?
 
 1. Now, make a change to the `src/static/index.html` file (like change the `<title>` to say "The Awesome Todo App").
 
-1. Build the Docker image now using `docker build` again. This time, your output should look a little different.
+1. Build the Docker image now using `docker build -t getting-started .` again. This time, your output should look a little different.
 
     ```plaintext hl_lines="5 8 11"
     Sending build context to Docker daemon  219.1kB
@@ -131,7 +146,7 @@ a change to the `package.json`. Make sense?
     Step 2/6 : WORKDIR /app
     ---> Using cache
     ---> 9577ae713121
-    Step 3/6 : COPY package* yarn.lock ./
+    Step 3/6 : COPY package.json yarn.lock ./
     ---> Using cache
     ---> bd5306f49fc8
     Step 4/6 : RUN yarn install --production
@@ -139,7 +154,7 @@ a change to the `package.json`. Make sense?
     ---> 4e68fbc2d704
     Step 5/6 : COPY . .
     ---> cccde25a3d9a
-    Step 6/6 : CMD ["node", "/app/src/index.js"]
+    Step 6/6 : CMD ["node", "src/index.js"]
     ---> Running in 2be75662c150
     Removing intermediate container 2be75662c150
     ---> 458e5c6f080c

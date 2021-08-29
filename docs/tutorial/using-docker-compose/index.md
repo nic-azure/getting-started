@@ -12,7 +12,7 @@ So, how do we get started?
 
 ## Installing Docker Compose
 
-Since you installed Docker Desktop/Toolbox for either Windows or Mac, you already have Docker Compose!
+If you installed Docker Desktop/Toolbox for either Windows or Mac, you already have Docker Compose!
 Play-with-Docker instances already have Docker Compose installed as well. If you are on 
 a Linux machine, you will need to install Docker Compose using 
 [the instructions here](https://docs.docker.com/compose/install/). 
@@ -49,11 +49,11 @@ And now, we'll start migrating a service at a time into the compose file.
 
 ## Defining the App Service
 
-To remember, this was the command we were using to define our app container.
+To remember, this was the command we were using to define our app container (replace the ` \ ` characters with `` ` `` in Windows PowerShell).
 
 ```bash
 docker run -dp 3000:3000 \
-  -w /app -v $PWD:/app \
+  -w /app -v ${PWD}:/app \
   --network todo-app \
   -e MYSQL_HOST=mysql \
   -e MYSQL_USER=root \
@@ -102,7 +102,7 @@ docker run -dp 3000:3000 \
           - 3000:3000
     ```
 
-1. Next, we'll migrate both the working directory (`-w /app`) and the volume mapping (`-v $PWD:/app`) by using
+1. Next, we'll migrate both the working directory (`-w /app`) and the volume mapping (`-v ${PWD}:/app`) by using
    the `working_dir` and `volumes` definitions. Volumes also has a [short](https://docs.docker.com/compose/compose-file/#short-syntax-3) and [long](https://docs.docker.com/compose/compose-file/#long-syntax-3) syntax.
 
     One advantage of Docker Compose volume definitions is we can use relative paths from the current directory.
@@ -145,7 +145,7 @@ docker run -dp 3000:3000 \
   
 ### Defining the MySQL Service
 
-Now, it's time to define the MySQL service. The command that we used for that container was the following:
+Now, it's time to define the MySQL service. The command that we used for that container was the following (replace the ` \ ` characters with `` ` `` in Windows PowerShell):
 
 ```bash
 docker run -d \
@@ -293,19 +293,15 @@ Now that we have our `docker-compose.yml` file, we can start it up!
 
 1. At this point, you should be able to open your app and see it running. And hey! We're down to a single command!
 
-## Seeing our App Stack in Docker Dashboard
+## Seeing our App Stack in the Docker Extension
 
-If we look at the Docker Dashboard, we'll see that there is a group named **app**. This is the "project name" from Docker
-Compose and used to group the containers together. By default, the project name is simply the name of the directory that the
-`docker-compose.yml` was located in.
+If we look at the Docker Extension, we can changing our grouping options using the 'cog' and 'group by'. In this instance we want to see containers sharing a network. 
 
-![Docker Dashboard with app project](dashboard-app-project-collapsed.png)
+![VS Extension with network](vs-app-project-collapsed.png)
 
-If you twirl down the app, you will see the two containers we defined in the compose file. The names are also a little
-more descriptive, as they follow the pattern of `<project-name>_<service-name>_<replica-number>`. So, it's very easy to
-quickly see what container is our app and which container is the mysql database.
+If you twirl down the network, you will see the two containers we defined in the compose file. 
 
-![Docker Dashboard with app project expanded](dashboard-app-project-expanded.png)
+![VS Extension with app network expanded](vs-app-project-expanded.png)
 
 
 ## Tearing it All Down
@@ -317,7 +313,7 @@ for the entire app. The containers will stop and the network will be removed.
     By default, named volumes in your compose file are NOT removed when running `docker-compose down`. If you want to
     remove the volumes, you will need to add the `--volumes` flag.
 
-    The Docker Dashboard does _not_ remove volumes when delete the app stack.
+    The Docker Dashboard does _not_ remove volumes when you delete the app stack.
 
 Once torn down, you can switch to another project, run `docker-compose up` and be ready to contribute to that project! It really
 doesn't get much simpler than that!
@@ -325,7 +321,7 @@ doesn't get much simpler than that!
 
 ## Recap
 
-In this section, we learned about Docker Compose and how it helps dramatically simply the defining and
+In this section, we learned about Docker Compose and how it helps us dramatically simplify the defining and
 sharing of multi-service applications. We created a Compose file by translating the commands we were
 using into the appropriate compose format.
 
